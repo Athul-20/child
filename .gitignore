@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+env.bak/
+venv.bak/
+
+# Environment variables
+.env
+.env.local
+
+# Temporary / Scratch scripts & files
+scratch/
+tmp/
+temp/
+
+# App uploads & temporary evaluation images
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
+# IDEs & System
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akshara — Malayalam Handwriting & Learning Assistant</title>
+    <!-- Google Fonts: Inter & Manjari -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manjari:wght@400;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js for clean progress graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css?v=2.8">
+</head>
+<body>
+    <div class="app-layout">
+        
+        <!-- ══════════════════════════════════════════════════════════════
+             LEFT SIDEBAR: HISTORY & CONTROLS
+             ══════════════════════════════════════════════════════════════ -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="app-brand">
+                    <div class="brand-badge">അ</div>
+                    <div class="brand-info">
+                        <h2>Akshara</h2>
+                        <span class="brand-tag">Handwriting Assistant</span>
+                    </div>
+                </div>
+                <button type="button" id="newEvalBtn" class="btn btn-new-eval">
+                    <span class="btn-icon">+</span>
+                    <span>New Evaluation</span>
+                </button>
+            </div>
+
+            <!-- Student Profile Switcher -->
+            <div class="sidebar-section">
+                <label class="sidebar-label">Current Student</label>
+                <select id="studentSelect" class="sidebar-select">
+                    <option value="STU_2026_042">Demo learner A (Class 3)</option>
+                    <option value="STU_2026_019">Demo learner B (Class 2)</option>
+                </select>
+                <div class="student-mini-profile">
+                    <span id="studentFocusBadge" class="focus-pill">Focus: ല vs ള sounds</span>
+                </div>
+            </div>
+
+            <!-- Quick Example Words -->
+            <div class="sidebar-section">
+                <label class="sidebar-label">Quick Test Examples</label>
+                <div class="quick-examples-list" id="quickExamplesList">
+                    <button type="button" class="example-item active" data-target="അടി" data-spelled="അടഇ" data-title="അടി → അടഇ (Multi-linearity)">
+                        <span class="ex-word">അടി → അടഇ</span>
+                        <span class="ex-note">Vowel sign (ി vs ഇ)</span>
+                    </button>
+                    <button type="button" class="example-item" data-target="അംഗം" data-spelled="അംകം" data-title="അംഗം → അംകം (ഗ vs ക)">
+                        <span class="ex-word">അംഗം → അംകം</span>
+                        <span class="ex-note">Voicing (ഗ / ക)</span>
+                    </button>
+                    <button type="button" class="example-item" data-target="തവള" data-spelled="തവല" data-title="തവള → തവല (ള vs ല)">
+                        <span class="ex-word">തവള → തവല</span>
+                        <span class="ex-note">Tongue curl (ള / ല)</span>
+                    </button>
+                    <button type="button" class="example-item" data-target="അകലം" data-spelled="അകആലം" data-title="അകലം → അകആലം (ാ matra)">
+                        <span class="ex-word">അകലം → അകആലം</span>
+                        <span class="ex-note">Vowel sign (ാ)</span>
+                    </button>
+                    <button type="button" class="example-item" data-target="അഖില" data-spelled="അകില" data-title="അഖില → അകില (ഖ vs ക)">
+                        <span class="ex-word">അഖില → അകില</span>
+                        <span class="ex-note">Aspiration (ഖ / ക)</span>
+                    </button>
+                    <button type="button" class="example-item" data-target="വീണ" data-spelled="വിണ" data-title="വീണ → വിണ (വീ vs വി)">
+                        <span class="ex-word">വീണ → വിണ</span>
+                        <span class="ex-note">Vowel length (വീ / വി)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Evaluation History -->
+            <div class="sidebar-section history-section">
+                <div class="history-header">
+                    <label class="sidebar-label">Evaluation History</label>
+                    <span id="historyCount" class="history-count">3 saved</span>
+                </div>
+                <div class="history-list" id="historyList">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <p>Designed for Teachers & Parents</p>
+                <small>Malayalam Writing Screening & Practice Support</small>
+            </div>
+        </aside>
+
+        <!-- ══════════════════════════════════════════════════════════════
+             MAIN WORKSPACE
+             ══════════════════════════════════════════════════════════════ -->
+        <main class="main-content">
+            
+            <header class="content-header">
+                <div class="header-titles">
+            <h1>Handwriting Probe Review</h1>
+                    <p>Enter the assigned probe and the child's response to review the evidence and suggested practice.</p>
+                </div>
+            </header>
+
+            <!-- INPUT CARD -->
+            <section class="card input-card">
+                <form id="evalForm">
+                    <div class="input-columns">
+                        
+                        <!-- Left Column: Word Inputs -->
+                        <div class="col-text-inputs">
+                            <div class="form-group">
+                                <label for="targetWord">Expected Word (Target Probe) <span class="optional-tag">Required</span></label>
+                                <input type="text" id="targetWord" name="target_word" class="malayalam-input" required placeholder="e.g. അംഗം or തവള">
+                                <span class="field-hint">The word the learner was asked to write. A target is needed to compare spelling accurately.</span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="spelledWord">What the Child Wrote <span class="optional-tag">Optional with photo</span></label>
+                                <input type="text" id="spelledWord" name="spelled_word" class="malayalam-input" placeholder="Type the response, or leave blank to recognize from photo">
+                                <span class="field-hint">When a photo is uploaded, HERA visual embeddings recognize the child's handwritten response and evaluate it automatically against the clinical taxonomy.</span>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Photo / PDF Upload -->
+                        <div class="col-upload">
+                            <label>Handwriting Photo or Assessment Sheet</label>
+                            <div class="dropzone" id="dropZone">
+                                <input type="file" id="fileInput" name="file" accept=".png,.jpg,.jpeg,.webp" class="file-hidden">
+                                <div class="dropzone-body">
+                                    <div class="dropzone-icon">📷</div>
+                                    <p class="dropzone-text"><strong>Click to upload</strong> or drag & drop a photo/scan</p>
+                            <small class="dropzone-sub">PNG, JPG, or WebP photo of one probe item</small>
+                                </div>
+                                <div id="dropzonePreview" class="dropzone-preview" style="display: none;">
+                                    <img id="thumbImg" src="" alt="Handwriting Sample">
+                                    <div class="file-info-bar">
+                                        <span id="fileName">sample.png</span>
+                                        <button type="button" id="removeFileBtn" class="btn-remove">&times;</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="form-bottom">
+                        <button type="submit" id="submitBtn" class="btn btn-primary">
+                            <span>Check Handwriting & Progress</span>
+                        </button>
+                        <span id="loadingSpinner" class="spinner" style="display: none;"></span>
+                    </div>
+                </form>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════════
+                 RESULTS & TEACHER REPORT (Shows upon evaluation)
+                 ══════════════════════════════════════════════════════════ -->
+            <div id="resultsSection" class="results-wrapper" style="display: none;">
+                
+                <!-- TOP STATUS BANNER -->
+                <div class="status-banner" id="statusBanner">
+                    <div class="status-icon" id="statusIcon">✓</div>
+                    <div class="status-details">
+                        <span class="status-subtitle" id="statusSubtitle">Evaluation Complete</span>
+                        <h2 id="statusTitle">Great Progress! (Mastering this sound)</h2>
+                        <p id="statusDesc">The child made a common sound substitution. Review the practice activities below.</p>
+                    </div>
+                    <div class="status-badge" id="statusBadge">Improving</div>
+                </div>
+
+                <!-- 2-COLUMN REPORT GRID -->
+                <div class="report-grid">
+                    
+                    <!-- LEFT COLUMN: WHAT HAPPENED & WHY -->
+                    <div class="report-column">
+                        
+                        <!-- Card 1: Visual Comparison -->
+                        <div class="card result-card">
+                            <h3 class="card-title">Word Comparison</h3>
+                            
+                            <!-- Uploaded Image & Stroke Segmentation (If Image was uploaded) -->
+                            <div id="imageStrokeBox" class="image-stroke-box" style="display: none;">
+                                <span class="box-label">Handwriting Regions and HERA Suggestions:</span>
+                                <div class="stroke-images">
+                                    <div class="stroke-img-col">
+                                        <small>Original Image</small>
+                                        <img id="rawSampleImg" src="" alt="Original handwriting">
+                                    </div>
+                                    <div class="stroke-img-col">
+                                        <small>Stroke regions (not character labels)</small>
+                                        <img id="annotatedSampleImg" src="" alt="Handwriting stroke regions">
+                                    </div>
+                                </div>
+                                <span id="strokeStatsText" class="stroke-stats">3 letter strokes detected</span>
+                            </div>
+
+                            <div class="comparison-display">
+                                <div class="comp-item expected">
+                                    <span class="comp-caption">Expected Word</span>
+                                    <div class="comp-text malayalam-font" id="resTargetWord">അംഗം</div>
+                                    <div class="comp-sound" id="resTargetSound">Sound: /am.ɡam/</div>
+                                </div>
+                                <div class="comp-arrow">→</div>
+                                <div class="comp-item written">
+                                    <span class="comp-caption">Child's Writing</span>
+                                    <div class="comp-text malayalam-font error-color" id="resSpelledWord">അംകം</div>
+                                    <div class="comp-sound" id="resSpelledSound">Sound: /amkam/</div>
+                                </div>
+                            </div>
+
+                            <div class="explanation-box">
+                            <h4>What the tools observed:</h4>
+                                <p id="resSimpleExplanation">The child replaced the voiced letter with a voiceless letter. Both letters feel very similar in the mouth.</p>
+                            </div>
+
+                            <!-- Easy Sound Breakdown -->
+                            <div class="sound-difference-box">
+                                <span class="sub-label">Sound Differences Detected:</span>
+                                <div id="soundDifferencesList" class="sound-pills-list">
+                                    <span class="pill pill-sound">Vocal cord vibration difference</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: Teacher Tips & Actionable Classroom Activities -->
+                        <div class="card result-card tips-card">
+                            <div class="card-header-clean">
+                                <h3 class="card-title">Recommended Practice for the Teacher</h3>
+                                <span id="resPracticeLevel" class="level-pill">Regular Classroom Support</span>
+                            </div>
+
+                            <div class="quote-callout">
+                                <span class="quote-symbol">💡</span>
+                                <p id="resPedagogicalQuote">"Children do not confuse letters at random; their handwriting faithfully maps how their auditory system hears the sound."</p>
+                            </div>
+
+                            <h4 class="tips-heading">3 Easy Activities to Try with the Child:</h4>
+                            <ul class="activities-list" id="resActivitiesList">
+                                <li><strong>Sand Tray Tracing:</strong> Have the child trace the letter shape with their finger in sand.</li>
+                                <li><strong>Listening Game:</strong> Say the two words aloud and have the child tap when they hear the difference.</li>
+                                <li><strong>Highlight Practice:</strong> Highlight the special letter in green on practice sheets.</li>
+                            </ul>
+                        </div>
+
+                    </div>
+
+                    <!-- RIGHT COLUMN: PROGRESS OVER TIME -->
+                    <div class="report-column">
+                        
+                        <!-- Card 3: Progress & Trend Graph -->
+                        <div class="card result-card">
+                            <div class="card-header-clean">
+                                <h3 class="card-title">Progress Over Recent Sessions</h3>
+                                <span id="sessionBadge" class="session-pill">Session 5</span>
+                            </div>
+
+                            <div class="chart-box">
+                                <canvas id="progressChart"></canvas>
+                            </div>
+
+                            <div class="progress-stats-row">
+                                <div class="stat-box">
+                                    <span class="stat-label">Learning Pace</span>
+                                    <span class="stat-val text-green" id="resLearningPace">Improving</span>
+                                    <small id="resSlopeText">Error rate dropping steadily</small>
+                                </div>
+                                <div class="stat-box">
+                                    <span class="stat-label">Concept Mastery</span>
+                                    <div class="mastery-bar-bg">
+                                        <div class="mastery-bar-fill" id="masteryFill" style="width: 85%;"></div>
+                                    </div>
+                                    <span class="stat-val" id="resMasteryPct">85% Mastered</span>
+                                </div>
+                            </div>
+
+                            <div class="alert-box-subtle" id="resAlertBox">
+                                <span class="alert-icon">📌</span>
+                                <span id="resAlertMsg">The child has shown steady improvement over the past 4 sessions.</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Reference Precedent (Clinical Validation) -->
+                        <div class="card result-card database-card">
+                            <h3 class="card-title">Reference Case in Teaching Database</h3>
+                            <div class="db-info-row">
+                                <span class="db-label">Error Category:</span>
+                                <span class="db-val" id="resCategoryName">Phonetic Similarity</span>
+                            </div>
+                            <div class="db-feedback-box">
+                                <p id="resDatabaseFeedback">"using ക instead of ഗ"</p>
+                            </div>
+                            <small class="db-footnote" id="resPrecedentSource">Matched with historical teaching database (8,673 verified records)</small>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <div class="card teacher-approval-card">
+                    <h3 class="card-title">Teacher review</h3>
+                    <p id="pipelineNotice">This prototype needs teacher verification of every transcription and interpretation.</p>
+                    <p id="approvalStatus">Review the evidence and suggested practice before using it.</p>
+                    <button type="button" id="approveInterventionBtn" class="btn btn-primary">Approve suggested practice</button>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <script src="/static/js/app.js?v=2.8"></script>
+</body>
+</html>

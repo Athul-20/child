@@ -1,0 +1,290 @@
+=== SLIDE 1 ===
+DOCTORAL QUALIFIER PRESENTATION
+An Agentic AI Framework for Early Identification, Longitudinal Monitoring, and Personalized Intervention of Children's Language Difficulties (Orthographic and Phonological) from Malayalam Handwritten Data
+Dhanya Sujatha
+ — Research Scholar
+Supervisor: Dr. Prema Nedungadi
+Amrita School of Computing, Amrita Vishwa Vidyapeetham, Amritapuri · 2026
+
+=== SLIDE 2 ===
+The Problem: An Invisible Population
+16.49%
+SLD prevalence, Kerala schoolchildren (ELD study, n=1,480)
+0 / 244
+identified children who had ever been evaluated or received remediation
+15.6%
+written-expression impairment — the most common SLD subtype
+Why this persists:
+• A handful of specialists cannot screen lakhs of children with hour-long subjective assessments
+• Classroom teachers receive little training to spot these difficulties
+• Early identification (ages 4–8) is decisive: structured support at this stage measurably closes literacy gaps
+• No early-identification system exists for Malayalam — or any Indian language
+
+=== SLIDE 3 ===
+Why Handwriting — and Why Malayalam
+Handwriting as the sensor
+• Produced daily in every classroom — no special equipment beyond a phone camera
+• 
+Letters may be cleanly formed, yet what is written is linguistically wrong
+ — the difficulty is in the language system, not the hand
+• Jointly encodes orthographic errors, spelling errors, and the child's underlying phonological representation
+• Buffalo DDBIC framework (2025): most of 17 dyslexia/dysgraphia indicators are extractable from static handwriting images
+• Our target: the 
+language (dyslexia-type)
+ difficulty — phonologically deviant spellings — not motoric penmanship (dysgraphia)
+Malayalam as the language
+• ~45M speakers; the literacy medium of Kerala children — state-syllabus children carry higher SLD risk (OR 6.97)
+• A screening tool must work in the child's medium of instruction
+• Near-transparent akshara orthography: spelling errors map directly to phonological causes — 
+more
+ diagnostic than English
+• Architecture exploits alphasyllabic structure → transfers to Tamil, Kannada, Telugu, Devanagari; English is out of scope
+The core insight:
+ for this application, the child's error is not noise to correct — 
+the error IS the diagnostic data.
+ Any system that auto-corrects destroys the signal.
+
+=== SLIDE 4 ===
+Research Gap: Four Streams, One Missing Link
+Stream
+Representative work
+What is missing
+Handwriting-based dyslexia / dysgraphia screening
+DDBIC (Buffalo 2025); SAU-Net; TestGraphia; Asselborn et al.
+English/Latin, adult focus; binary has/disorder labels; stops at screening — no intervention loop
+Malayalam / Indic handwritten recognition
+HERA (this scholar, under review); DSC+Bi-LSTM; CNN-based MHCR
+Prior work trains on correct adult writing — punishes error preservation; only HERA preserves errors, and stops at word level
+Grapheme–phoneme / phonological analysis
+OSUR-G2P (this scholar, under review); mlphon FST
+mlphon rejects 43.5% of learner spellings; clinical error analysis is manual and English-centric; no longitudinal profiling
+Agentic AI in education
+LLM-agent surveys; GenMentor; RL multi-agent ITS
+No agent consumes handwriting-derived evidence; none targets early-literacy children; none in an Indic language; none RTI-grounded
+Gap:
+ nothing connects error-preserving recognition → linguistic error profiling → agent-delivered, monitored intervention — in any language. My two works (under review) close the first two links; 
+the third link is the doctoral contribution.
+
+=== SLIDE 5 ===
+"Can LLMs Not Just Do This?" — We Measured It
+System
+Approach
+CER ↓
+HERA (ours)
+Retrieval-only
+0.20
+Gemini 2.5 Pro
+Generative VLM
+0.388
+Sarvam AI
+Indic VLM
+0.441
+PaddleOCR (FT)
+Supervised CNN
+0.528
+PaddleOCR (std)
+Supervised CNN
+0.621
+GPT-5.1
+Generative LLM
+0.786
+Claude Opus 4
+Multimodal LLM
+0.800
+Three-level answer:
+1. Perception fails, measurably.
+ Frontier VLMs/LLMs reach 20–61% character accuracy where HERA reaches 80% — and they fail by 
+auto-correcting the child's errors away
+.
+2. The cause is structural.
+ The language prior is baked into decoding — strict "do not correct" prompting does not switch it off. mlphon likewise rejects 43.5% of learner spellings.
+3. So LLMs take their proper role.
+ Reasoning over verified evidence, planning, content, explanation — on top of a deterministic evidence chain they cannot replace.
+Design principle: 
+error preservation must be architectural, not prompted.
+Agents orchestrate deterministic tools (HERA, OSUR-G2P, statistics) — they do not perceive or compute trends in-context.
+
+=== SLIDE 6 ===
+Problem Statement
+Orthographic and phonological language difficulties are the most prevalent yet least screened form of SLD among Indian primary-school children — and they surface in everyday handwriting, where the letters may be well-formed but what is written is linguistically wrong. Handwriting is the sensor, not the disorder. Existing computational approaches (a) target English/Latin adult handwriting, (b) auto-correct away the very errors that carry the diagnostic signal, and (c) stop at one-time detection — a binary label — with no explanation of which difficulties the child shows, and no tracking of whether help is working.
+This research proposes an identification–insight–monitoring framework: error-preserving recognition (HERA) and error-preserving G2P (OSUR) feed an agentic diagnostic layer holding a longitudinal learner model; each new sample is compared against the child's own history to produce actionable insights and progress verdicts; an agentic intervention layer delivers personalized, tiered remediation measured by the same pipeline — a closed loop under teacher supervision, transferable to other akshara scripts.
+🔍
+Which difficulties?
+Specific orthographic vs phonological error patterns, classified against a diagnostic schema
+🎯
+What to work on?
+Teacher-actionable, evidence-traced insights — priorities, not labels
+📈
+Is it working?
+Improving / stagnant / worsening — each child vs their own history, not just population norms
+
+=== SLIDE 7 ===
+The Three-Pillar Framework
+P1 See
+ (HERA, under review) → 
+P2 Hear
+ (OSUR-G2P, under review) → 
+P3 Understand & Act
+ (agentic layer — the doctoral contribution). The feedback arrow: intervention response refines the learner model.
+
+=== SLIDE 8 ===
+COMPLETED · UNDER REVIEW
+P1 — HERA: Error-Preserving Recognition
+Design:
+ retrieval-only recognition — the language-model prior is removed from the loop entirely.
+• Hierarchical 3-tier segmentation (VPP → Canny/contours → width fallback)
+• Hybrid descriptor: frozen SigLIP-2 (768-d) + HOG (1,764-d) → 2,532-d vector
+• HNSW nearest-neighbour retrieval + inverse-distance-weighted voting
+• No lexicon, no beam search, no decoder → 
+the retrieved label is the output
+Knowledge base:
+ 336,527 images · 634 Malayalam grapheme classes (public on Hugging Face)
+0.17–0.20
+CER on unseen children's handwriting (200-word / 50-word sets)
++14.1 pp
+accuracy gain of hybrid descriptor over SigLIP-2 alone (ablation)
+Outperforms 
+Gemini 2.5 Pro, Sarvam AI, GPT-5.1, Claude Opus 4
+, and two PaddleOCR variants — by 18.8 to 60 CER points
+Why it matters for the thesis:
+ each output character is traceable to a retrieved neighbourhood — not a hidden sequence prior. Substitution, omission, and vowel-sign errors are preserved verbatim for downstream analysis.
+
+=== SLIDE 9 ===
+COMPLETED · UNDER REVIEW
+P2 — OSUR-G2P: Error-Preserving Phonological Analysis
+Design:
+ transcribe the mis-spelled word to IPA 
+without
+ correcting it.
+• 
+OSUR tokenizer
+ — segments Malayalam into akshara units (clusters, matras, chillu, anusvara) that must not be split
+• 
+Per-step decoder-conditioned alignment
+ — two instantiations: BiLSTM + positional-encoding attention; OSUR-Transformer
+• 
+GUPER
+ — new grapheme-unit phoneme error rate for abugida scripts
+• 
+Dataset:
+ 13,576 word–IPA pairs (3,800 authentic learner items), leakage-free word-disjoint protocol
+• 
+12-rule error taxonomy
+ — orthographic / phonological / phono-orthographic, derived from real learner data
+0.84%
+PER — BiLSTM instantiation (word-disjoint test)
+2.82%
+GUPER — unit-level error rate
+Rule-based mlphon 
+rejects 43.5%
+ of authentic learner spellings — the exact inputs this framework is designed to transcribe
+Example:
+ "ക്ലാാസ്സ്" (doubled vowel diacritic for "ക്ലാസ്സ്") → OSUR isolates [ക്ലാാ][സ്സ്] → model transcribes /klaːaː/ faithfully. The preserved phoneme error is the diagnostic evidence for the agentic layer.
+
+=== SLIDE 10 ===
+PROPOSED · DOCTORAL CORE
+P3 — The Agentic Diagnostic-Intervention Layer
+Longitudinal Learner Memory
+ — structured per-child, per-error-class history built from HERA+G2P snapshots. Agents reason over this memory; they never compute trends in-context.
+Error-Analysis Agent
+Calls HERA + OSUR-G2P as tools; retrieves similar linguist-labeled cases (~1,000-instance gold set); classifies each error against the diagnostic schema with evidence traces.
+Insight Agent (self-verifying)
+Queries memory; calls deterministic stats tools (slope, change-point, mastery); issues improving / stagnant / worsening verdicts; critique–revise loop checks each claim against raw data.
+Intervention Planner + Content Agent
+RTI/MTSS-tiered plan (Tier 1→3); generates Malayalam practice AND the next probe, verified by OSUR/mlphon so drills target the intended phoneme contrast.
+Orchestrator + Teacher Gate — every plan and insight passes human review; screening and support, never diagnosis
+Probe mode:
+ 10–15 grade-leveled dictation/picture-naming words every 2–3 weeks (mirrors RTI progress monitoring). The Content Agent generates the next probe — the intended word is never missing inside the loop. Free-writing analysis is scoped as future work.
+
+=== SLIDE 11 ===
+Novelty: Five New Mechanisms (N1–N5)
+Code
+Mechanism
+Claim
+N1
+Longitudinal learner memory
+First structured, per-error-class memory of handwriting-derived evidence for educational agents — in any language
+N2
+Self-verifying insight generation
+Critique–revise loop grounds each insight in raw data via tool calls — tackles LLM hallucination in child assessment
+N3
+Evidence-traced insight language
+Every insight is machine-checkable; introduces insight-faithfulness as a new measurable evaluation problem
+N4
+Phonology-constrained content generation
+Generated Malayalam drills verified by OSUR/mlphon — constraint-verified generation in a low-resource language
+N5
+Tool-mediated numeracy
+Agents call deterministic stats tools; ablation vs free-reasoning agents turns the design choice into an experiment
+Layer-level claims:
+ first agentic diagnostic-intervention system driven by handwriting evidence · first LLM-agent architecture grounded in RTI/MTSS · first agentic system with a provably error-preserving perception layer · closed causal loop — intervention effect measured by the same pipeline that triggered it.
+
+=== SLIDE 12 ===
+Research Questions and Evaluation Plan
+RQ1, RQ2 — answered (under review):
+ error-preserving recognition (HERA, CER 0.17–0.20) and phonology (OSUR-G2P, PER 0.84%) outperform correction-oriented systems.
+RQ3 (identification & insight):
+ can a tool-augmented agent with longitudinal memory identify which specific difficulties a child shows, with evidence-traced insights validated against linguist labels and a NIMHANS-style instrument?
+RQ3b (progress monitoring):
+ do improving / stagnant / worsening verdicts match measured learning gains, with earlier signal than re-screening?
+RQ4 (intervention):
+ does the RTI-aligned agentic plan beat a static baseline on learning gains? 
+RQ5:
+ transfer to a second akshara script with script-level changes only.
+Component
+Metrics
+Baselines
+P1 HERA (done)
+CER 0.20 / 0.17; per-class accuracy; +14.1 pp hybrid ablation
+Gemini 2.5 Pro, Sarvam, GPT-5.1, Claude Opus 4, PaddleOCR ×2
+P2 OSUR-G2P (done)
+PER 0.84% / GUPER 2.82%; bigram-holdout stress test
+Static-attention (2.96%); mlphon (rejects 43.5%)
+P3a Insight / monitoring
+AUC vs clinical assessment; classification F1 vs linguist labels; trajectory-verdict accuracy; insight-faithfulness
+Free-reasoning LLM agent (no tools); human checklist; re-screening
+P3b Intervention
+Learning gain per error class; time-to-improvement; teacher acceptance
+Static plan; monitoring-without-agents ablation; waitlist where ethical
+Data assets in hand:
+ 336,527-image character KB · 13,576 word–IPA pairs · ~1,000 linguist-labeled error instances (Haridas framework) · ethics approval AMRITNSOE/ADMN/DON03/2026/002 already in place.
+
+=== SLIDE 13 ===
+Timeline and Publication Pipeline
+Period
+Milestone
+Sem 1–2
+Diagnostic error schema (extend 12-rule taxonomy + visual/motoric classes); learner memory design; Error-Analysis Agent over the linguist-labeled set; ethics renewal for longitudinal collection
+Sem 3
+Insight Agent with stats tools + self-verification loop; insight-faithfulness metric; N5 ablation (tool-mediated vs free-reasoning agents)
+Sem 4
+Intervention Planner + Content Agent (phonology-constrained generation); probe design protocol; school partnership
+Sem 5
+Longitudinal pilot in schools; at-risk validation against standard instrument; trajectory-verdict evaluation
+Sem 6
+Cross-script transfer study (RQ5); intervention learning-gain analysis; thesis writing and submission
+Publication pipeline:
+• P1 HERA — 
+under review
+ (document analysis: IJDAR / ICDAR / DAS) • P2 OSUR-G2P — 
+under review
+ (NLP: SNCS / COLING / LREC)
+• P3a diagnostic schema + longitudinal profiling — ACM IDC / assistive-tech • P3b agentic layer — AIED / EDM / ITS
+
+=== SLIDE 14 ===
+Why This Research, and Why Now
+• 
+A real, unmet need:
+ 1 in 6 Kerala children has a learning disorder; none are identified; early support works
+• 
+A proven foundation:
+ two perception works completed and under review, with datasets and ethics approval in hand
+• 
+A defensible design:
+ error preservation is architectural; agents orchestrate verified evidence — a claim backed by our own measurements, not preference
+• 
+A genuine gap:
+ the first agentic diagnostic-intervention system driven by handwriting evidence — for Malayalam, designed to transfer across akshara scripts
+The system never asks "does this child have a problem?" once — it continuously answers three questions: which difficulties, what to work on, and is it working?
+Thank you — questions welcome
+
