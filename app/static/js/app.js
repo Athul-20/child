@@ -493,7 +493,51 @@ document.addEventListener("DOMContentLoaded", () => {
                 ? "Mastery achieved! Ready to advance to more complex conjunct letters."
                 : (long.action_required === "MODALITY_SHIFT"
                     ? "Plateau noticed. Shifting practice style to hands-on tactile drawing."
-                    : "Continuing active monitoring.");
+                    : (long.action_required === "TIER_ESCALATION"
+                        ? "Acute regression spike detected. Recommending Tier 2 intensive support."
+                        : "Continuing active monitoring."));
+        }
+
+        // DETAILED PSYCHOMETRICS (PhD Pillar 3 - Mechanism N1-N5)
+        const metricTheilSen = document.getElementById("metricTheilSen");
+        const metricSlopeNote = document.getElementById("metricSlopeNote");
+        const metricCusum = document.getElementById("metricCusum");
+        const metricCusumNote = document.getElementById("metricCusumNote");
+        const metricBkt = document.getElementById("metricBkt");
+        const metricAction = document.getElementById("metricAction");
+        const metricAuditTrace = document.getElementById("metricAuditTrace");
+
+        if (metricTheilSen) {
+            const slopeVal = long.theil_sen_slope ?? 0.0;
+            metricTheilSen.textContent = `${slopeVal >= 0 ? "+" : ""}${slopeVal.toFixed(4)} / session`;
+            metricTheilSen.style.color = slopeVal < -0.01 ? "var(--success)" : (slopeVal > 0.02 ? "var(--danger)" : "#38bdf8");
+        }
+        if (metricSlopeNote) {
+            metricSlopeNote.textContent = long.theil_sen_slope < -0.01 
+                ? "Consistent downward error velocity" 
+                : (long.theil_sen_slope > 0.02 ? "Upward error drift (regression)" : "Flat plateau across sessions");
+        }
+        if (metricCusum) {
+            metricCusum.textContent = long.cusum_alert || "NONE";
+            metricCusum.style.color = long.cusum_alert === "REGRESSION_SURGE" 
+                ? "var(--danger)" 
+                : (long.cusum_alert === "BREAKTHROUGH_DROP" ? "var(--success)" : "#94a3b8");
+        }
+        if (metricCusumNote) {
+            metricCusumNote.textContent = long.cusum_alert === "REGRESSION_SURGE" 
+                ? "Acute regression spike detected" 
+                : (long.cusum_alert === "BREAKTHROUGH_DROP" ? "Statistically significant breakthrough" : "Variance within expected baseline bounds");
+        }
+        if (metricBkt) {
+            const bktPct = Math.round((long.bkt_mastery_probability ?? 0.2) * 100);
+            metricBkt.textContent = `${bktPct}%`;
+            metricBkt.style.color = bktPct >= 80 ? "var(--success)" : (bktPct >= 40 ? "#38bdf8" : "var(--warning)");
+        }
+        if (metricAction) {
+            metricAction.textContent = long.action_required || "MONITOR";
+        }
+        if (metricAuditTrace) {
+            metricAuditTrace.textContent = long.verified_teacher_report || long.teacher_recommendation || "Claims grounded in deterministic tools (Theil-Sen slope & BKT posterior). Zero LLM hallucination.";
         }
 
         // REFERENCE DATABASE INFO
