@@ -42,9 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
         studentSelect.addEventListener("change", () => {
             if (studentFocusBadge) {
                 if (studentSelect.value === "STU_2026_042") {
-                    studentFocusBadge.textContent = "Focus: ല vs ള sounds";
+                    studentFocusBadge.textContent = "Focus: Voicing (ക/ഗ) & Liquid (ല/ള)";
                 } else {
-                    studentFocusBadge.textContent = "Focus: Vowel signs (Matras)";
+                    studentFocusBadge.textContent = "Focus: Non-linear Matras (Multi-linearity)";
                 }
             }
         });
@@ -63,8 +63,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (targetWordInput) targetWordInput.value = item.dataset.target || "";
             if (spelledWordInput) spelledWordInput.value = item.dataset.spelled || "";
+            if (item.dataset.student && studentSelect) {
+                studentSelect.value = item.dataset.student;
+                studentSelect.dispatchEvent(new Event("change"));
+            }
             clearSuggestionReview();
             clearFileInput();
+        });
+    }
+
+    const resetHistoryBtn = document.getElementById("resetHistoryBtn");
+    if (resetHistoryBtn) {
+        resetHistoryBtn.addEventListener("click", async () => {
+            if (!confirm("Reset student longitudinal histories back to canonical 4-week baselines?")) return;
+            try {
+                const res = await fetch("/api/students/reset", { method: "POST" });
+                const d = await res.json();
+                alert(d.message || "Baselines reset successfully!");
+                location.reload();
+            } catch (err) {
+                alert("Failed to reset baselines: " + err.message);
+            }
         });
     }
 
@@ -308,10 +327,10 @@ document.addEventListener("DOMContentLoaded", () => {
             if (long.verdict === "INSUFFICIENT_DATA" || long.verdict === "BASELINE") {
                 banner.style.borderLeftColor = "var(--border-light)";
                 statusBadge.className = "status-badge status-badge-stagnant";
-                statusBadge.textContent = "Collecting data";
+                statusBadge.textContent = "Baseline";
                 statusIcon.textContent = "i";
-                statusTitle.textContent = "More probe data needed";
-                statusDesc.textContent = long.teacher_recommendation || "Collect at least five comparable probe observations before interpreting progress.";
+                statusTitle.textContent = "Baseline Probe Recorded";
+                statusDesc.textContent = long.teacher_recommendation || "Baseline recorded. Subsequent probes will compute Theil-Sen learning velocity and BKT mastery.";
             } else if (long.verdict === "DECREASED") {
                 banner.style.borderLeftColor = "var(--success)";
                 statusBadge.className = "status-badge status-badge-improving";
@@ -320,16 +339,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusIcon.style.color = "var(--success)";
                 statusIcon.style.background = "var(--success-bg)";
                 statusTitle.textContent = long.bkt_mastery_probability >= 0.85 ? "Great Progress! Concept Mastered" : "Steady Improvement Detected";
-                statusDesc.textContent = `The observed error rate fell by ${Math.abs(long.immediate_delta * 100).toFixed(0)}%. Review the trend with the teacher before changing the probe difficulty.`;
+                statusDesc.textContent = long.teacher_recommendation || `The observed error rate fell by ${Math.abs(long.immediate_delta * 100).toFixed(0)}%. Continue current practice protocol.`;
             } else if (long.verdict === "STAGNANT") {
                 banner.style.borderLeftColor = "var(--warning)";
                 statusBadge.className = "status-badge status-badge-stagnant";
-                statusBadge.textContent = "Steady";
+                statusBadge.textContent = "Plateau";
                 statusIcon.textContent = "•";
                 statusIcon.style.color = "var(--warning)";
                 statusIcon.style.background = "var(--warning-bg)";
-                statusTitle.textContent = "Learning Plateau (Needs Practice Shift)";
-                statusDesc.textContent = "Error rate remained flat over consecutive sessions. We recommend trying multi-sensory sand tray tracing.";
+                statusTitle.textContent = "Learning Plateau (Modality Shift Required)";
+                statusDesc.textContent = long.teacher_recommendation || "Error rate remained flat over consecutive sessions. Recommend multi-sensory sand tray tracing.";
             } else if (long.verdict === "INCREASED") {
                 banner.style.borderLeftColor = "var(--danger)";
                 statusBadge.className = "status-badge status-badge-regression";
@@ -337,15 +356,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 statusIcon.textContent = "!";
                 statusIcon.style.color = "var(--danger)";
                 statusIcon.style.background = "var(--danger-bg)";
-                statusTitle.textContent = "Noticeable Error Surge";
-                statusDesc.textContent = `The observed error rate rose by ${Math.abs(long.immediate_delta * 100).toFixed(0)}%. Review the probe and consider targeted practice with the teacher.`;
+                statusTitle.textContent = "Noticeable Error Surge (Tier Escalation)";
+                statusDesc.textContent = long.teacher_recommendation || `The observed error rate rose by ${Math.abs(long.immediate_delta * 100).toFixed(0)}%. Escalate intervention tier from Tier 1 to Tier 2.`;
             } else {
                 banner.style.borderLeftColor = "var(--border-light)";
                 statusBadge.className = "status-badge status-badge-stagnant";
-                statusBadge.textContent = "Monitor";
+                statusBadge.textContent = "Monitoring";
                 statusIcon.textContent = "•";
-                statusTitle.textContent = "Mixed results";
-                statusDesc.textContent = long.teacher_recommendation || "Continue comparable probes and review the results with the teacher.";
+                statusTitle.textContent = "Fluctuating Performance";
+                statusDesc.textContent = long.teacher_recommendation || "Continue comparable probes and review results with the teacher.";
             }
         }
 
@@ -438,10 +457,32 @@ document.addEventListener("DOMContentLoaded", () => {
         const masteryPctEl = document.getElementById("resMasteryPct");
         const alertMsg = document.getElementById("resAlertMsg");
 
-        if (sBadge) sBadge.textContent = `Probe ${long.sessions_completed || 1}`;
+        if (sBadge) sBadge.textContent = long.sessions_completed ? `Week ${long.sessions_completed}` : "Week 1";
         const hasTrend = long.verdict !== "INSUFFICIENT_DATA" && long.verdict !== "BASELINE";
-        if (paceEl) paceEl.textContent = !hasTrend ? "Collecting data" : (long.theil_sen_slope < 0 ? "Improving" : (long.theil_sen_slope === 0 ? "Steady" : "Fluctuating"));
-        if (slopeEl) slopeEl.textContent = !hasTrend ? "More comparable probes are needed" : (long.theil_sen_slope < 0 ? `Error rate falling by ${(Math.abs(long.theil_sen_slope) * 100).toFixed(1)}% per probe` : "No clear downward trend");
+        if (paceEl) {
+            if (!hasTrend) {
+                paceEl.textContent = "Collecting data";
+            } else if (long.verdict === "INCREASED") {
+                paceEl.textContent = "Error Surge (Regressing)";
+            } else if (long.theil_sen_slope < 0) {
+                paceEl.textContent = "Improving Velocity";
+            } else if (long.theil_sen_slope === 0) {
+                paceEl.textContent = "Steady (Plateau)";
+            } else {
+                paceEl.textContent = "Fluctuating";
+            }
+        }
+        if (slopeEl) {
+            if (!hasTrend) {
+                slopeEl.textContent = "More comparable probes are needed";
+            } else if (long.verdict === "INCREASED") {
+                slopeEl.textContent = `Acute surge (+${Math.abs(long.immediate_delta * 100).toFixed(0)}% delta)`;
+            } else if (long.theil_sen_slope < 0) {
+                slopeEl.textContent = `Error falling by ${(Math.abs(long.theil_sen_slope) * 100).toFixed(1)}% per week`;
+            } else {
+                slopeEl.textContent = "No downward trend detected";
+            }
+        }
 
         const masteryPct = Math.round((long.bkt_mastery_probability ?? 0.2) * 100);
         if (masteryFill) masteryFill.style.width = `${masteryPct}%`;

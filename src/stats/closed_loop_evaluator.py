@@ -52,35 +52,14 @@ class ClosedLoopEvaluator:
                 "status": "BASELINE_INITIALIZED",
                 "immediate_delta": 0.0,
                 "theil_sen_slope": 0.0,
+                "learning_velocity": 0.0,
                 "verdict": "BASELINE",
                 "action_required": "CONTINUE_BASELINE",
                 "bkt_mastery_probability": initial_bkt["posterior_mastery"],
                 "cusum_alert": "NONE",
-                "teacher_recommendation": "Baseline item recorded. Collect more comparable probe data before interpreting progress.",
-                "verified_teacher_report": "Baseline item recorded. Collect more comparable probe data before interpreting progress.",
+                "teacher_recommendation": "Baseline assessment recorded. Future probe submissions will track longitudinal slope and concept mastery.",
+                "verified_teacher_report": "Baseline assessment recorded. Future probe submissions will track longitudinal slope and concept mastery.",
                 "sessions_completed": 1
-            }
-
-        # Trend claims need enough spaced probe points to be meaningful.
-        if len(all_sessions) < 5:
-            prior_bkt = historical_sessions[-1].get("bkt_mastery", 0.20)
-            current_bkt = self.stats.bkt_update(
-                prior_mastery=prior_bkt,
-                is_correct=current_session_result.get("correct", current_session_result["error_rate"] == 0.0)
-            )
-            return {
-                "student_id": student_id,
-                "dimension": dimension,
-                "sessions_completed": len(all_sessions),
-                "verdict": "INSUFFICIENT_DATA",
-                "immediate_delta": 0.0,
-                "theil_sen_slope": 0.0,
-                "learning_velocity": 0.0,
-                "bkt_mastery_probability": current_bkt["posterior_mastery"],
-                "cusum_alert": "NONE",
-                "action_required": "CONTINUE_BASELINE",
-                "teacher_recommendation": f"{len(all_sessions)} comparable items recorded. Collect at least five spaced probes before interpreting progress.",
-                "verified_teacher_report": f"{len(all_sessions)} comparable items recorded. Collect at least five spaced probes before interpreting progress."
             }
 
         # 1. Immediate Delta

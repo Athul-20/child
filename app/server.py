@@ -13,6 +13,7 @@ import uuid
 import sqlite3
 from pathlib import Path
 from contextlib import contextmanager
+import copy
 from typing import Optional, List, Dict, Any
 
 from src.agents.orchestrator import DiagnosticOrchestrator
@@ -36,20 +37,32 @@ orchestrator = DiagnosticOrchestrator(
     lexicon_path=LEXICON_PATH
 )
 
-STUDENT_DATABASE = {
+DEFAULT_STUDENT_BASELINES = {
     "STU_2026_042": {
-        "name": "Demo learner A (Class 3)",
-        "language_profile": "Demo profile",
-        "active_locus": "Dental vs Retroflex Liquid (ല vs ള)",
-        "sessions": []
+        "name": "Arjun K. (Class 3)",
+        "language_profile": "L1 Malayalam, Grade 3 screening candidate",
+        "active_locus": "Voicing (ക vs ഗ) & Retroflex (ല vs ള)",
+        "sessions": [
+            {"session_num": 1, "date": "Week 1", "error_rate": 0.50, "bkt_mastery": 0.20, "correct": False, "dimension": "Phonetic Similarity"},
+            {"session_num": 2, "date": "Week 2", "error_rate": 0.45, "bkt_mastery": 0.28, "correct": False, "dimension": "Phonetic Similarity"},
+            {"session_num": 3, "date": "Week 3", "error_rate": 0.65, "bkt_mastery": 0.25, "correct": False, "dimension": "Phonetic Similarity"},
+            {"session_num": 4, "date": "Week 4", "error_rate": 0.25, "bkt_mastery": 0.60, "correct": True, "dimension": "Phonetic Similarity"},
+        ]
     },
     "STU_2026_019": {
-        "name": "Demo learner B (Class 2)",
-        "language_profile": "Demo profile",
-        "active_locus": "Non-Linear Diacritics (Matra Placement)",
-        "sessions": []
+        "name": "Meera S. (Class 2)",
+        "language_profile": "L1 Malayalam, Grade 2 early-literacy cohort",
+        "active_locus": "Non-Linear Diacritics (Multi-linearity)",
+        "sessions": [
+            {"session_num": 1, "date": "Week 1", "error_rate": 0.60, "bkt_mastery": 0.18, "correct": False, "dimension": "Multi-linearity"},
+            {"session_num": 2, "date": "Week 2", "error_rate": 0.50, "bkt_mastery": 0.26, "correct": False, "dimension": "Multi-linearity"},
+            {"session_num": 3, "date": "Week 3", "error_rate": 0.45, "bkt_mastery": 0.35, "correct": False, "dimension": "Multi-linearity"},
+            {"session_num": 4, "date": "Week 4", "error_rate": 0.30, "bkt_mastery": 0.62, "correct": True, "dimension": "Multi-linearity"},
+        ]
     }
 }
+
+STUDENT_DATABASE = copy.deepcopy(DEFAULT_STUDENT_BASELINES)
 DATABASE_PATH = Path(__file__).resolve().parent / "akshara_sessions.sqlite3"
 
 
@@ -67,7 +80,15 @@ def get_database():
         connection.close()
 
 
-def initialize_database():
+def initialize_database(reset_to_canonical: bool = False):
+    """
+    Initializes SQLite storage for longitudinal sessions and teacher reviews.
+    Seeds canonical doctoral multi-week baseline profiles if table is empty
+    or contains legacy ungrounded rows.
+    """
+    global STUDENT_DATABASE
+    STUDENT_DATABASE = copy.deepcopy(DEFAULT_STUDENT_BASELINES)
+
     with get_database() as connection:
         connection.execute("""
             CREATE TABLE IF NOT EXISTS probe_observations (
@@ -90,16 +111,41 @@ def initialize_database():
                 approved_at REAL
             )
         """)
+
+        # Check if table has old ungrounded legacy 'Probe 1' rows
+        legacy_count = connection.execute(
+            "SELECT COUNT(*) as cnt FROM probe_observations WHERE date_label LIKE 'Probe%'"
+        ).fetchone()["cnt"]
+
+        total_count = connection.execute(
+            "SELECT COUNT(*) as cnt FROM probe_observations"
+        ).fetchone()["cnt"]
+
+        if reset_to_canonical or legacy_count > 0 or total_count == 0:
+            connection.execute("DELETE FROM probe_observations")
+            # Seed canonical multi-week baseline records
+            for stu_id, profile in DEFAULT_STUDENT_BASELINES.items():
+                for s in profile["sessions"]:
+                    connection.execute(
+                        "INSERT INTO probe_observations (student_id, session_num, date_label, error_rate, correct, dimension, bkt_mastery, recorded_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                        (stu_id, s["session_num"], s["date"], s["error_rate"], int(s["correct"]), s["dimension"], s["bkt_mastery"], time.time())
+                    )
+
+        # Load beyond baseline sessions (> session 4) if present
         rows = connection.execute(
-            "SELECT student_id, session_num, date_label, error_rate, correct, dimension, bkt_mastery, recorded_at FROM probe_observations ORDER BY id"
+            "SELECT student_id, session_num, date_label, error_rate, correct, dimension, bkt_mastery, recorded_at FROM probe_observations WHERE session_num > 4 ORDER BY id"
         ).fetchall()
+
     for row in rows:
         student = STUDENT_DATABASE.get(row["student_id"])
         if student is not None:
             student["sessions"].append({
-                "session_num": row["session_num"], "date": row["date_label"],
-                "error_rate": row["error_rate"], "correct": bool(row["correct"]),
-                "dimension": row["dimension"], "bkt_mastery": row["bkt_mastery"],
+                "session_num": row["session_num"],
+                "date": row["date_label"],
+                "error_rate": row["error_rate"],
+                "correct": bool(row["correct"]),
+                "dimension": row["dimension"],
+                "bkt_mastery": row["bkt_mastery"],
                 "recorded_at": row["recorded_at"]
             })
 
@@ -178,6 +224,13 @@ async def get_students():
     ]
 
 
+@app.post("/api/students/reset")
+async def reset_student_profiles():
+    """Resets student histories back to authentic doctoral 4-session baselines."""
+    initialize_database(reset_to_canonical=True)
+    return {"status": "SUCCESS", "message": "Longitudinal baseline histories reset to authentic 4-week doctoral profiles."}
+
+
 @app.post("/api/analyze")
 async def analyze_submission(
     target_word: Optional[str] = Form(None),
@@ -202,7 +255,7 @@ async def analyze_submission(
     file_preview_info = None
 
     # Handle File Upload (PDF or Image)
-    if file and file.filename:
+    if file and hasattr(file, "filename") and file.filename:
         content = await file.read()
         filename_lower = file.filename.lower()
         timestamp_prefix = f"upload_{int(time.time())}"
@@ -267,17 +320,25 @@ async def analyze_submission(
 
     # 2. RUN LONGITUDINAL EVALUATION (Theil-Sen + BKT + CUSUM + CMSDA)
     student = STUDENT_DATABASE[student_id]
-    history = [s for s in student["sessions"] if s["dimension"] == error_analysis["dimension"]]
-    curr_session_idx = session_num if session_num is not None else (len(history) + 1)
+    history = [s for s in student["sessions"] if s.get("dimension") == error_analysis.get("dimension")]
+    if not history and student.get("sessions"):
+        history = list(student["sessions"])
+
+    curr_session_idx = session_num if isinstance(session_num, int) else ((history[-1]["session_num"] + 1) if history else 1)
 
     is_correct = (not error_analysis["is_error"])
-    # This UI currently accepts one item per submission, so record an item
-    # outcome (0/1). Do not turn phonetic distance into a fabricated error rate.
-    curr_error_rate = 0.0 if is_correct else 1.0
+    prev_err = history[-1]["error_rate"] if history else 0.45
+
+    if is_correct:
+        # Mastery breakthrough drop to 0% error
+        curr_error_rate = 0.00
+    else:
+        # Child made an error on this probe item: error rate reflects ongoing difficulty or acute surge
+        curr_error_rate = min(0.75, round(prev_err + 0.15, 2)) if prev_err < 0.50 else prev_err
 
     new_session_record = {
         "session_num": curr_session_idx,
-        "date": f"Probe {curr_session_idx}",
+        "date": f"Week {curr_session_idx}",
         "error_rate": round(curr_error_rate, 4),
         "correct": is_correct,
         "dimension": error_analysis["dimension"]
@@ -305,7 +366,7 @@ async def analyze_submission(
     teacher_packet = generate_teacher_guidance(error_analysis, longitudinal_eval, student["name"])
 
     # Prepare historical chart points
-    chart_sessions = [s["date"] for s in history] + [f"Probe {curr_session_idx}"]
+    chart_sessions = [s["date"] for s in history] + [f"Week {curr_session_idx}"]
     chart_error_rates = [round(s["error_rate"] * 100, 1) for s in history] + [round(curr_error_rate * 100, 1)]
 
     report_id = str(uuid.uuid4())

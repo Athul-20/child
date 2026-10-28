@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manjari:wght@400;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js for clean progress graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css?v=2.8">
+    <link rel="stylesheet" href="/static/css/style.css?v=3.0">
 </head>
 <body>
     <div class="app-layout">
@@ -35,13 +35,16 @@
 
             <!-- Student Profile Switcher -->
             <div class="sidebar-section">
-                <label class="sidebar-label">Current Student</label>
-                <select id="studentSelect" class="sidebar-select">
-                    <option value="STU_2026_042">Demo learner A (Class 3)</option>
-                    <option value="STU_2026_019">Demo learner B (Class 2)</option>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label class="sidebar-label" style="margin-bottom:0;">Current Student</label>
+                    <button type="button" id="resetHistoryBtn" title="Reset baseline history back to 4 weeks" style="font-size:0.75rem; color:#38bdf8; background:none; border:none; cursor:pointer; text-decoration:underline;">↺ Reset Baselines</button>
+                </div>
+                <select id="studentSelect" class="sidebar-select" style="margin-top:6px;">
+                    <option value="STU_2026_042">Arjun K. (Class 3)</option>
+                    <option value="STU_2026_019">Meera S. (Class 2)</option>
                 </select>
                 <div class="student-mini-profile">
-                    <span id="studentFocusBadge" class="focus-pill">Focus: ല vs ള sounds</span>
+                    <span id="studentFocusBadge" class="focus-pill">Focus: Voicing (ക/ഗ) & Liquid (ല/ള)</span>
                 </div>
             </div>
 
@@ -49,27 +52,27 @@
             <div class="sidebar-section">
                 <label class="sidebar-label">Quick Test Examples</label>
                 <div class="quick-examples-list" id="quickExamplesList">
-                    <button type="button" class="example-item active" data-target="അടി" data-spelled="അടഇ" data-title="അടി → അടഇ (Multi-linearity)">
+                    <button type="button" class="example-item active" data-target="അടി" data-spelled="അടഇ" data-student="STU_2026_019" data-title="അടി → അടഇ (Multi-linearity)">
                         <span class="ex-word">അടി → അടഇ</span>
                         <span class="ex-note">Vowel sign (ി vs ഇ)</span>
                     </button>
-                    <button type="button" class="example-item" data-target="അംഗം" data-spelled="അംകം" data-title="അംഗം → അംകം (ഗ vs ക)">
+                    <button type="button" class="example-item" data-target="അംഗം" data-spelled="അംകം" data-student="STU_2026_042" data-title="അംഗം → അംകം (ഗ vs ക)">
                         <span class="ex-word">അംഗം → അംകം</span>
                         <span class="ex-note">Voicing (ഗ / ക)</span>
                     </button>
-                    <button type="button" class="example-item" data-target="തവള" data-spelled="തവല" data-title="തവള → തവല (ള vs ല)">
+                    <button type="button" class="example-item" data-target="തവള" data-spelled="തവല" data-student="STU_2026_042" data-title="തവള → തവല (ള vs ല)">
                         <span class="ex-word">തവള → തവല</span>
                         <span class="ex-note">Tongue curl (ള / ല)</span>
                     </button>
-                    <button type="button" class="example-item" data-target="അകലം" data-spelled="അകആലം" data-title="അകലം → അകആലം (ാ matra)">
+                    <button type="button" class="example-item" data-target="അകലം" data-spelled="അകആലം" data-student="STU_2026_019" data-title="അകലം → അകആലം (ാ matra)">
                         <span class="ex-word">അകലം → അകആലം</span>
                         <span class="ex-note">Vowel sign (ാ)</span>
                     </button>
-                    <button type="button" class="example-item" data-target="അഖില" data-spelled="അകില" data-title="അഖില → അകില (ഖ vs ക)">
+                    <button type="button" class="example-item" data-target="അഖില" data-spelled="അകില" data-student="STU_2026_042" data-title="അഖില → അകില (ഖ vs ക)">
                         <span class="ex-word">അഖില → അകില</span>
                         <span class="ex-note">Aspiration (ഖ / ക)</span>
                     </button>
-                    <button type="button" class="example-item" data-target="വീണ" data-spelled="വിണ" data-title="വീണ → വിണ (വീ vs വി)">
+                    <button type="button" class="example-item" data-target="വീണ" data-spelled="വിണ" data-student="STU_2026_042" data-title="വീണ → വിണ (വീ vs വി)">
                         <span class="ex-word">വീണ → വിണ</span>
                         <span class="ex-note">Vowel length (വീ / വി)</span>
                     </button>
@@ -312,6 +315,6 @@
         </main>
     </div>
 
-    <script src="/static/js/app.js?v=2.8"></script>
+    <script src="/static/js/app.js?v=3.0"></script>
 </body>
 </html>
