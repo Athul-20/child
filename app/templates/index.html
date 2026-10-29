@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manjari:wght@400;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js for clean progress graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css?v=3.1">
+    <link rel="stylesheet" href="/static/css/style.css?v=3.2">
 </head>
 <body>
     <div class="app-layout">
@@ -187,18 +187,16 @@
                             
                             <!-- Uploaded Image & Stroke Segmentation (If Image was uploaded) -->
                             <div id="imageStrokeBox" class="image-stroke-box" style="display: none;">
-                                <span class="box-label">Handwriting Regions and HERA Suggestions:</span>
                                 <div class="stroke-images">
                                     <div class="stroke-img-col">
                                         <small>Original Image</small>
                                         <img id="rawSampleImg" src="" alt="Original handwriting">
                                     </div>
                                     <div class="stroke-img-col">
-                                        <small>Stroke regions (not character labels)</small>
+                                        <small>Stroke Segmentation</small>
                                         <img id="annotatedSampleImg" src="" alt="Handwriting stroke regions">
                                     </div>
                                 </div>
-                                <span id="strokeStatsText" class="stroke-stats">3 letter strokes detected</span>
                             </div>
 
                             <div class="comparison-display">
@@ -351,6 +349,6 @@
         </main>
     </div>
 
-    <script src="/static/js/app.js?v=3.1"></script>
+    <script src="/static/js/app.js?v=3.2"></script>
 </body>
 </html>

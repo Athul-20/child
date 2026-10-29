@@ -375,20 +375,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 imageStrokeBox.style.display = "flex";
                 const rawImg = document.getElementById("rawSampleImg");
                 const annImg = document.getElementById("annotatedSampleImg");
-                const statsTxt = document.getElementById("strokeStatsText");
                 if (rawImg) rawImg.src = data.file_info.details.raw_image_url + "?t=" + Date.now();
                 if (annImg) annImg.src = data.file_info.details.annotated_image_url + "?t=" + Date.now();
-                if (statsTxt) {
-                    if (data.response_source === "teacher-entered text") {
-                        const imageGuess = data.file_info.details.hera_recognized || "no text confidently recognized";
-                        statsTxt.textContent = `Teacher-entered response used for analysis. HERA visual suggestion: "${imageGuess}". Review the photo and candidate list.`;
-                    } else if (data.file_info.details.hera_recognized) {
-                        const candidates = (data.file_info.details.sheet_candidates || []).slice(0, 3).map(c => c.word).join(" / ");
-                        statsTxt.textContent = `HERA matched the photo against ${data.file_info.details.sheet_candidate_count} response spellings for this target in the reference sheet. Best match: "${data.file_info.details.hera_recognized}"${candidates ? `; close sheet matches: ${candidates}` : ""}. Please verify.`;
-                    } else {
-                        statsTxt.textContent = `${data.file_info.details.segmented_boxes} letter outlines detected in sample`;
-                    }
-                }
             } else {
                 imageStrokeBox.style.display = "none";
             }
