@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manjari:wght@400;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
     <!-- Chart.js for clean progress graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="/static/css/style.css?v=3.2">
+    <link rel="stylesheet" href="/static/css/style.css?v=3.6">
 </head>
 <body>
     <div class="app-layout">
@@ -37,7 +37,7 @@
             <div class="sidebar-section">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <label class="sidebar-label" style="margin-bottom:0;">Current Student</label>
-                    <button type="button" id="resetHistoryBtn" title="Reset baseline history back to 4 weeks" style="font-size:0.75rem; color:#38bdf8; background:none; border:none; cursor:pointer; text-decoration:underline;">↺ Reset Baselines</button>
+                    <button type="button" id="resetHistoryBtn" title="Reset baseline history back to 4 weeks" style="font-size:0.75rem; color:var(--primary); background:none; border:none; cursor:pointer; text-decoration:underline;">↺ Reset Baselines</button>
                 </div>
                 <select id="studentSelect" class="sidebar-select" style="margin-top:6px;">
                     <option value="STU_2026_042">Arjun K. (Class 3)</option>
@@ -52,27 +52,51 @@
             <div class="sidebar-section">
                 <label class="sidebar-label">Quick Test Examples</label>
                 <div class="quick-examples-list" id="quickExamplesList">
-                    <button type="button" class="example-item active" data-target="അടി" data-spelled="അടഇ" data-student="STU_2026_019" data-title="അടി → അടഇ (Multi-linearity)">
+                    <button type="button" class="example-item active" 
+                        data-target="കലവറ" 
+                        data-student="STU_2026_042" 
+                        data-image="/static/demo_samples/kalavara_touching.jpeg" 
+                        data-title="കലവറ → ഗലവറ (Continuous Touching)">
+                        <span class="ex-word">കലവറ → ഗലവറ</span>
+                        <span class="ex-note">📷 Touching characters (ക / ഗ)</span>
+                    </button>
+                    <button type="button" class="example-item" 
+                        data-target="അടി" 
+                        data-spelled="അടഇ" 
+                        data-student="STU_2026_019" 
+                        data-title="അടി → അടഇ (Multi-linearity)">
                         <span class="ex-word">അടി → അടഇ</span>
                         <span class="ex-note">Vowel sign (ി vs ഇ)</span>
                     </button>
-                    <button type="button" class="example-item" data-target="അംഗം" data-spelled="അംകം" data-student="STU_2026_042" data-title="അംഗം → അംകം (ഗ vs ക)">
+                    <button type="button" class="example-item" 
+                        data-target="അംഗം" 
+                        data-spelled="അംകം" 
+                        data-student="STU_2026_042" 
+                        data-title="അംഗം → അംകം (Voicing)">
                         <span class="ex-word">അംഗം → അംകം</span>
                         <span class="ex-note">Voicing (ഗ / ക)</span>
                     </button>
-                    <button type="button" class="example-item" data-target="തവള" data-spelled="തവല" data-student="STU_2026_042" data-title="തവള → തവല (ള vs ല)">
+                    <button type="button" class="example-item" 
+                        data-target="തവള" 
+                        data-spelled="തവല" 
+                        data-student="STU_2026_042" 
+                        data-title="തവള → തവല (Liquid)">
                         <span class="ex-word">തവള → തവല</span>
                         <span class="ex-note">Tongue curl (ള / ല)</span>
                     </button>
-                    <button type="button" class="example-item" data-target="അകലം" data-spelled="അകആലം" data-student="STU_2026_019" data-title="അകലം → അകആലം (ാ matra)">
-                        <span class="ex-word">അകലം → അകആലം</span>
-                        <span class="ex-note">Vowel sign (ാ)</span>
+                    <button type="button" class="example-item" 
+                        data-target="കടുവ" 
+                        data-spelled="കടഉവ" 
+                        data-student="STU_2026_019" 
+                        data-title="കടുവ → കടഉവ (Diacritic)">
+                        <span class="ex-word">കടുവ → കടഉവ</span>
+                        <span class="ex-note">Diacritic (ു vs ഉ)</span>
                     </button>
-                    <button type="button" class="example-item" data-target="അഖില" data-spelled="അകില" data-student="STU_2026_042" data-title="അഖില → അകില (ഖ vs ക)">
-                        <span class="ex-word">അഖില → അകില</span>
-                        <span class="ex-note">Aspiration (ഖ / ക)</span>
-                    </button>
-                    <button type="button" class="example-item" data-target="വീണ" data-spelled="വിണ" data-student="STU_2026_042" data-title="വീണ → വിണ (വീ vs വി)">
+                    <button type="button" class="example-item" 
+                        data-target="വീണ" 
+                        data-spelled="വിണ" 
+                        data-student="STU_2026_042" 
+                        data-title="വീണ → വിണ (Length)">
                         <span class="ex-word">വീണ → വിണ</span>
                         <span class="ex-note">Vowel length (വീ / വി)</span>
                     </button>
@@ -288,35 +312,35 @@
                         <div class="card result-card psychometrics-card" id="psychometricsCard">
                             <div class="card-header-clean">
                                 <h3 class="card-title">Detailed Longitudinal Analysis (PhD Pillar 3)</h3>
-                                <span class="badge badge-outline" style="border: 1px solid #38bdf8; color: #38bdf8; font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">Tool-Mediated (N5)</span>
+                                <span class="badge badge-outline" style="border: 1px solid var(--primary); color: var(--primary); font-size: 0.72rem; padding: 2px 8px; border-radius: 12px;">Tool-Mediated (N5)</span>
                             </div>
                             
                             <div class="metrics-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
-                                <div class="metric-item" style="background: rgba(15, 23, 42, 0.6); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-                                    <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block;">Theil-Sen Slope</span>
-                                    <strong id="metricTheilSen" style="font-size: 1.1rem; color: #38bdf8;">-0.038 / session</strong>
-                                    <small id="metricSlopeNote" style="display: block; font-size: 0.75rem; color: #cbd5e1; margin-top: 2px;">Empirical learning velocity</small>
+                                <div class="metric-item" style="background: var(--bg-card-subtle); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block;">Theil-Sen Slope</span>
+                                    <strong id="metricTheilSen" style="font-size: 1.1rem; color: var(--primary);">-0.038 / session</strong>
+                                    <small id="metricSlopeNote" style="display: block; font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">Empirical learning velocity</small>
                                 </div>
-                                <div class="metric-item" style="background: rgba(15, 23, 42, 0.6); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-                                    <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block;">CUSUM Change-Point</span>
-                                    <strong id="metricCusum" style="font-size: 1.1rem; color: #f59e0b;">NONE</strong>
-                                    <small id="metricCusumNote" style="display: block; font-size: 0.75rem; color: #cbd5e1; margin-top: 2px;">Sequential anomaly test</small>
+                                <div class="metric-item" style="background: var(--bg-card-subtle); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block;">CUSUM Change-Point</span>
+                                    <strong id="metricCusum" style="font-size: 1.1rem; color: #d97706;">NONE</strong>
+                                    <small id="metricCusumNote" style="display: block; font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">Sequential anomaly test</small>
                                 </div>
-                                <div class="metric-item" style="background: rgba(15, 23, 42, 0.6); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-                                    <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block;">BKT Latent Mastery</span>
-                                    <strong id="metricBkt" style="font-size: 1.1rem; color: #10b981;">21.5%</strong>
-                                    <small style="display: block; font-size: 0.75rem; color: #cbd5e1; margin-top: 2px;">Bayesian knowledge trace</small>
+                                <div class="metric-item" style="background: var(--bg-card-subtle); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block;">BKT Latent Mastery</span>
+                                    <strong id="metricBkt" style="font-size: 1.1rem; color: #16a34a;">21.5%</strong>
+                                    <small style="display: block; font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">Bayesian knowledge trace</small>
                                 </div>
-                                <div class="metric-item" style="background: rgba(15, 23, 42, 0.6); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
-                                    <span style="font-size: 0.72rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; display: block;">Dynamic Action</span>
-                                    <strong id="metricAction" style="font-size: 1.05rem; color: #a855f7;">MAINTAIN_INTERVENTION</strong>
-                                    <small style="display: block; font-size: 0.75rem; color: #cbd5e1; margin-top: 2px;">RTI / MTSS closed loop</small>
+                                <div class="metric-item" style="background: var(--bg-card-subtle); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                                    <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; display: block;">Dynamic Action</span>
+                                    <strong id="metricAction" style="font-size: 1.05rem; color: #9333ea;">MAINTAIN_INTERVENTION</strong>
+                                    <small style="display: block; font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">RTI / MTSS closed loop</small>
                                 </div>
                             </div>
 
-                            <div style="margin-top: 12px; padding: 10px; background: rgba(56, 189, 248, 0.08); border-left: 3px solid #38bdf8; border-radius: 4px;">
-                                <strong style="font-size: 0.8rem; color: #38bdf8; display: block; margin-bottom: 3px;">Self-Verifying Critique-Revise Audit (Mechanism N2):</strong>
-                                <p id="metricAuditTrace" style="font-size: 0.78rem; color: #cbd5e1; margin: 0; line-height: 1.4;">Deterministic psychometric tools computed learning velocity and verified teacher recommendations. Free-reasoning LLM hallucination prevented via strict tool-grounding.</p>
+                            <div style="margin-top: 12px; padding: 10px; background: #f0f9ff; border-left: 3px solid var(--primary); border-radius: 4px;">
+                                <strong style="font-size: 0.8rem; color: var(--primary); display: block; margin-bottom: 3px;">Self-Verifying Critique-Revise Audit (Mechanism N2):</strong>
+                                <p id="metricAuditTrace" style="font-size: 0.78rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">Deterministic psychometric tools computed learning velocity and verified teacher recommendations. Free-reasoning LLM hallucination prevented via strict tool-grounding.</p>
                             </div>
                         </div>
 
@@ -349,6 +373,6 @@
         </main>
     </div>
 
-    <script src="/static/js/app.js?v=3.2"></script>
+    <script src="/static/js/app.js?v=3.6"></script>
 </body>
 </html>

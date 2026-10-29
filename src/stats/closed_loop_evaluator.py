@@ -10,6 +10,7 @@ Implements the continuous evaluation feedback loop:
 """
 
 from typing import Dict, Any, List
+import numpy as np
 from src.stats.longitudinal_engine import LongitudinalStatsEngine
 
 

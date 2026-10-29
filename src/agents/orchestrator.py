@@ -50,11 +50,14 @@ class DiagnosticOrchestrator:
         3. 3-Tier G2P & 22-D PanPhon articulatory feature decomposition
         """
         target = unicodedata.normalize("NFC", (target_word or "").strip())
+        sheet_candidates = self.rag.candidate_responses_for_target(target) if target else None
         
-        # Step 1: HERA Retrieval-Only Vision Perception (0% autocorrect)
+        # Step 1: Multimodal Qwen2-VL Vision Perception (0% autocorrect)
         ocr_res = self.ocr.extract_verbatim_graphemes(
             image_bytes=image_bytes,
-            simulated_raw_transcription=simulated_raw_handwriting
+            simulated_raw_transcription=simulated_raw_handwriting,
+            target_word=target,
+            sheet_candidates=sheet_candidates
         )
         spelled_word = unicodedata.normalize("NFC", ocr_res["spelled_word"].strip())
 

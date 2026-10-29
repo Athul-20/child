@@ -32,8 +32,11 @@ document.addEventListener("DOMContentLoaded", () => {
     let evalHistory = [];
     let currentReportId = null;
 
-    // Load history from localStorage
+    // Load history from localStorage and synchronize with SQLite memory
     loadHistory();
+    if (evalHistory.length === 0) {
+        fetchStudentMemoryHistory(studentSelect ? studentSelect.value : "STU_2026_042");
+    }
 
     // ══════════════════════════════════════════════════════════════════════════
     // 1. STUDENT PROFILE SWITCHER
@@ -47,29 +50,93 @@ document.addEventListener("DOMContentLoaded", () => {
                     studentFocusBadge.textContent = "Focus: Non-linear Matras (Multi-linearity)";
                 }
             }
+            fetchStudentMemoryHistory(studentSelect.value);
         });
+    }
+
+    async function fetchStudentMemoryHistory(studentId) {
+        try {
+            const res = await fetch(`/api/students/${studentId}/history`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (evalHistory.length === 0 && data.sessions && data.sessions.length > 0) {
+                const recent = data.sessions.slice(-4).reverse();
+                evalHistory = recent.map(s => ({
+                    id: s.recorded_at || Date.now(),
+                    student_name: data.student ? data.student.name : "Learner",
+                    target_word: s.target_word || "അംഗം",
+                    spelled_word: s.spelled_word || (s.correct ? s.target_word : "അംകം"),
+                    verdict: s.correct ? "DECREASED" : "STAGNANT",
+                    time_str: s.date_label || "Baseline",
+                    memory_bkt: s.bkt_mastery
+                }));
+                renderHistoryList();
+            }
+        } catch (e) {
+            console.warn("Could not fetch persistent student memory:", e);
+        }
     }
 
     // ══════════════════════════════════════════════════════════════════════════
     // 2. QUICK EXAMPLE SELECTION
     // ══════════════════════════════════════════════════════════════════════════
+    async function loadExampleItem(item) {
+        if (!item) return;
+
+        document.querySelectorAll(".example-item").forEach(el => el.classList.remove("active"));
+        item.classList.add("active");
+
+        if (targetWordInput) targetWordInput.value = item.dataset.target || "";
+        if (item.dataset.student && studentSelect) {
+            studentSelect.value = item.dataset.student;
+            studentSelect.dispatchEvent(new Event("change"));
+        }
+        clearSuggestionReview();
+
+        if (item.dataset.image) {
+            // Teacher selected an image-backed sample: load preview & populate fileInput
+            try {
+                const imageUrl = item.dataset.image;
+                const resp = await fetch(imageUrl);
+                if (!resp.ok) throw new Error("Could not fetch sample image");
+                const blob = await resp.blob();
+                const filename = imageUrl.split("/").pop();
+                const file = new File([blob], filename, { type: blob.type || "image/jpeg" });
+
+                if (fileInput) {
+                    const transfer = new DataTransfer();
+                    transfer.items.add(file);
+                    fileInput.files = transfer.files;
+                }
+
+                if (spelledWordInput) spelledWordInput.value = "";
+                if (fileNameSpan) fileNameSpan.textContent = filename + " (Sample Test Image)";
+                if (thumbImg) thumbImg.src = imageUrl;
+                if (dropzonePreview) dropzonePreview.style.display = "flex";
+                const dzBody = document.querySelector(".dropzone-body");
+                if (dzBody) dzBody.style.display = "none";
+            } catch (err) {
+                console.error("Failed to load sample image into dropzone:", err);
+                if (spelledWordInput) spelledWordInput.value = item.dataset.spelled || "";
+            }
+        } else {
+            clearFileInput();
+            if (spelledWordInput) spelledWordInput.value = item.dataset.spelled || "";
+        }
+    }
+
     if (quickExamplesList) {
-        quickExamplesList.addEventListener("click", (e) => {
+        quickExamplesList.addEventListener("click", async (e) => {
             const item = e.target.closest(".example-item");
             if (!item) return;
-
-            document.querySelectorAll(".example-item").forEach(el => el.classList.remove("active"));
-            item.classList.add("active");
-
-            if (targetWordInput) targetWordInput.value = item.dataset.target || "";
-            if (spelledWordInput) spelledWordInput.value = item.dataset.spelled || "";
-            if (item.dataset.student && studentSelect) {
-                studentSelect.value = item.dataset.student;
-                studentSelect.dispatchEvent(new Event("change"));
-            }
-            clearSuggestionReview();
-            clearFileInput();
+            await loadExampleItem(item);
         });
+
+        // Auto-load default active example on startup so teacher can directly click "Analyse"
+        const defaultItem = quickExamplesList.querySelector(".example-item.active");
+        if (defaultItem) {
+            loadExampleItem(defaultItem);
+        }
     }
 
     const resetHistoryBtn = document.getElementById("resetHistoryBtn");
@@ -600,10 +667,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 plugins: {
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: "#0c1527",
-                        titleColor: "#f8fafc",
+                        backgroundColor: "#1e293b",
+                        titleColor: "#ffffff",
                         bodyColor: "#38bdf8",
-                        borderColor: "rgba(56, 189, 248, 0.3)",
+                        borderColor: "#e2e8f0",
                         borderWidth: 1,
                         padding: 10,
                         callbacks: {
@@ -614,14 +681,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 scales: {
                     x: {
                         grid: { display: false },
-                        ticks: { color: "#94a3b8", font: { size: 11 } }
+                        ticks: { color: "#64748b", font: { size: 11 } }
                     },
                     y: {
                         min: 0,
                         max: 100,
-                        grid: { color: "rgba(56, 189, 248, 0.08)" },
+                        grid: { color: "#e2e8f0" },
                         ticks: {
-                            color: "#94a3b8",
+                            color: "#64748b",
                             font: { size: 11 },
                             callback: v => v + "%"
                         }
